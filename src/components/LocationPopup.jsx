@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buildZillowUrl, buildGoogleMapsUrl, buildLandWatchUrl, buildLandsOfAmericaUrl, buildTopoUrl } from '../utils/overpass';
+import { buildZillowUrl, buildGoogleMapsUrl, buildRealtorUrl, buildLandComUrl, buildTopoUrl } from '../utils/overpass';
 
 const STATUS_OPTIONS = [
   { value: 'unexplored', label: 'Unexplored', color: '#888' },
@@ -79,11 +79,11 @@ export function LocationPopup({ location, onUpdate, onDelete }) {
               <a href={buildZillowUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
                 Zillow
               </a>
-              <a href={buildLandWatchUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                LandWatch
+              <a href={buildRealtorUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                Realtor.com
               </a>
-              <a href={buildLandsOfAmericaUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                Lands of America
+              <a href={buildLandComUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                Land.com
               </a>
             </div>
           </div>

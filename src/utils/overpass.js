@@ -41,24 +41,30 @@ export async function fetchClimbingFeatures(bounds) {
   })).filter((el) => el.lat && el.lon);
 }
 
-// Google Maps "land for sale" search — most reliable cross-platform option
+// Google Maps "land for sale" search — opens Maps centered on coordinates
 export function buildGoogleMapsUrl(lat, lng) {
   return `https://www.google.com/maps/search/land+for+sale/@${lat},${lng},13z`;
 }
 
-// Zillow map search centered on coordinates
+// Zillow map search using their internal searchQueryState bounding-box format
 export function buildZillowUrl(lat, lng) {
-  return `https://www.zillow.com/homes/${lat},${lng}_ll/`;
+  const d = 0.1;
+  const state = JSON.stringify({
+    isMapVisible: true,
+    mapBounds: { west: lng - d, east: lng + d, south: lat - d, north: lat + d },
+    filterState: { isForSaleByAgent: { value: true }, isForSaleByOwner: { value: true } },
+  });
+  return `https://www.zillow.com/homes/for_sale/?searchQueryState=${encodeURIComponent(state)}`;
 }
 
-// LandWatch rural/land listings — lon param (not lng)
-export function buildLandWatchUrl(lat, lng) {
-  return `https://www.landwatch.com/land/for-sale?lat=${lat}&lon=${lng}`;
+// Realtor.com land listings near coordinates
+export function buildRealtorUrl(lat, lng) {
+  return `https://www.realtor.com/realestateandhomes-search/homes?lat=${lat}&lng=${lng}&type=land`;
 }
 
-// Lands of America — large rural land marketplace
-export function buildLandsOfAmericaUrl(lat, lng) {
-  return `https://www.landsofamerica.com/land/search/?lat=${lat}&lon=${lng}`;
+// Land.com — large rural/raw land marketplace (CoStar network)
+export function buildLandComUrl(lat, lng) {
+  return `https://www.land.com/land/search/?lat=${lat}&lon=${lng}`;
 }
 
 export function buildTopoUrl(lat, lng, zoom = 14) {

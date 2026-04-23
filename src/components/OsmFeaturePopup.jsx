@@ -1,4 +1,4 @@
-import { buildZillowUrl, buildGoogleMapsUrl, buildLandWatchUrl, buildLandsOfAmericaUrl } from '../utils/overpass';
+import { buildZillowUrl, buildGoogleMapsUrl, buildRealtorUrl, buildLandComUrl } from '../utils/overpass';
 
 const TYPE_LABELS = {
   cliff: 'Cliff',
@@ -29,11 +29,11 @@ export function OsmFeaturePopup({ feature, onAddLocation }) {
           <a href={buildZillowUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
             Zillow
           </a>
-          <a href={buildLandWatchUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-            LandWatch
+          <a href={buildRealtorUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            Realtor.com
           </a>
-          <a href={buildLandsOfAmericaUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-            Lands of America
+          <a href={buildLandComUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            Land.com
           </a>
         </div>
       </div>
