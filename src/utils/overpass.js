@@ -1,23 +1,80 @@
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
-export async function fetchClimbingFeatures(bounds) {
+export const OSM_FILTER_DEFS = [
+  {
+    key: 'cliffs',
+    label: 'Cliffs',
+    description: 'Mapped cliff faces and escarpments (natural=cliff)',
+    color: '#ff9800',
+    parts: (bb) => [
+      `node["natural"="cliff"](${bb})`,
+      `way["natural"="cliff"](${bb})`,
+      `relation["natural"="cliff"](${bb})`,
+    ],
+  },
+  {
+    key: 'bareRock',
+    label: 'Exposed Rock',
+    description: 'Bare or exposed rock surfaces — slabs, outcrops (natural=bare_rock, natural=rock)',
+    color: '#ffc107',
+    parts: (bb) => [
+      `node["natural"="bare_rock"](${bb})`,
+      `node["natural"="rock"](${bb})`,
+      `way["natural"="bare_rock"](${bb})`,
+      `way["natural"="rock"](${bb})`,
+    ],
+  },
+  {
+    key: 'scree',
+    label: 'Scree & Talus',
+    description: 'Loose rock fields at the base of cliffs — often indicates cliffs above (natural=scree)',
+    color: '#cc8800',
+    parts: (bb) => [
+      `node["natural"="scree"](${bb})`,
+      `way["natural"="scree"](${bb})`,
+    ],
+  },
+  {
+    key: 'climbing',
+    label: 'Mapped Climbing',
+    description: 'Areas explicitly tagged as climbing in OSM — sparse but authoritative (leisure=climbing, climbing=*)',
+    color: '#2196f3',
+    parts: (bb) => [
+      `node["climbing"](${bb})`,
+      `way["leisure"="climbing"](${bb})`,
+      `relation["leisure"="climbing"](${bb})`,
+    ],
+  },
+  {
+    key: 'boulders',
+    label: 'Boulders',
+    description: 'Individual large boulders that may offer bouldering problems (natural=stone, natural=boulder)',
+    color: '#9e9e9e',
+    parts: (bb) => [
+      `node["natural"="stone"](${bb})`,
+      `node["natural"="boulder"](${bb})`,
+    ],
+  },
+];
+
+export const DEFAULT_OSM_FILTERS = Object.fromEntries(
+  OSM_FILTER_DEFS.map((f) => [f.key, true])
+);
+
+export async function fetchClimbingFeatures(bounds, filters = DEFAULT_OSM_FILTERS) {
   const { south, west, north, east } = bounds;
   const bbox = `${south},${west},${north},${east}`;
+
+  const activeParts = OSM_FILTER_DEFS
+    .filter((f) => filters[f.key])
+    .flatMap((f) => f.parts(bbox));
+
+  if (activeParts.length === 0) return [];
 
   const query = `
     [out:json][timeout:25];
     (
-      node["natural"="bare_rock"](${bbox});
-      node["natural"="cliff"](${bbox});
-      node["natural"="rock"](${bbox});
-      node["natural"="scree"](${bbox});
-      node["climbing"](${bbox});
-      way["natural"="bare_rock"](${bbox});
-      way["natural"="cliff"](${bbox});
-      way["natural"="rock"](${bbox});
-      way["leisure"="climbing"](${bbox});
-      relation["natural"="cliff"](${bbox});
-      relation["leisure"="climbing"](${bbox});
+      ${activeParts.join(';\n      ')};
     );
     out center;
   `;

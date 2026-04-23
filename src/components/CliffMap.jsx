@@ -186,7 +186,7 @@ export function CliffMap({
       {/* OpenBeta known climbing areas */}
       {openBetaAreas.map((area) => (
         <Marker
-          key={area.uuid}
+          key={`${area.metadata.lat}-${area.metadata.lng}`}
           position={[area.metadata.lat, area.metadata.lng]}
           icon={makeOpenBetaIcon()}
         >
