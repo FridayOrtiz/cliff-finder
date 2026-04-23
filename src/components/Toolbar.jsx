@@ -90,8 +90,8 @@ export function Toolbar({
           <HelpCircle size={17} color="#aaa" />
         </button>
 
-        <span style={{ fontSize: 10, color: '#555', whiteSpace: 'nowrap', flexShrink: 0 }} title="Build date">
-          {__BUILD_DATE__}
+        <span style={{ fontSize: 10, color: '#555', whiteSpace: 'nowrap', flexShrink: 0 }} title="Build commit">
+          {__COMMIT_SHA__}
         </span>
       </div>
 
