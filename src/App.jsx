@@ -81,7 +81,15 @@ export default function App() {
     const radius = Math.round(Math.sqrt(latM ** 2 + lngM ** 2));
     setClimbsLoading(true);
     try {
-      setOpenBetaAreas(await fetchOpenBetaAreas(centerLat, centerLng, radius));
+      const { crags, raw } = await fetchOpenBetaAreas(centerLat, centerLng, radius);
+      setOpenBetaAreas(crags);
+      if (crags.length === 0) {
+        alert(
+          `OpenBeta returned 0 climbing areas within ${Math.round(radius / 1000)} km.\n\n` +
+          `Raw response: ${JSON.stringify(raw)}\n\n` +
+          `Try zooming out or searching over a known climbing area.`
+        );
+      }
     } catch (err) {
       alert(`OpenBeta fetch failed: ${err.message}`);
     } finally {
