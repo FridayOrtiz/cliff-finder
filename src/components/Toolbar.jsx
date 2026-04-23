@@ -89,6 +89,10 @@ export function Toolbar({
         <button onClick={onHelp} style={iconBtnStyle} title="How to use Cliff Finder" aria-label="Help">
           <HelpCircle size={17} color="#aaa" />
         </button>
+
+        <span style={{ fontSize: 10, color: '#555', whiteSpace: 'nowrap', flexShrink: 0 }} title="Build date">
+          {__BUILD_DATE__}
+        </span>
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
