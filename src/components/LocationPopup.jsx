@@ -21,7 +21,7 @@ export function LocationPopup({ location, onUpdate, onDelete }) {
   const currentStatus = STATUS_OPTIONS.find((s) => s.value === status);
 
   return (
-    <div style={{ minWidth: 240, maxWidth: 300 }}>
+    <div style={{ width: 240 }}>
       {editing ? (
         <>
           <input
@@ -30,7 +30,6 @@ export function LocationPopup({ location, onUpdate, onDelete }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={inputStyle}
-            autoFocus
           />
           <select
             value={status}
@@ -46,11 +45,13 @@ export function LocationPopup({ location, onUpdate, onDelete }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            style={{ ...inputStyle, marginTop: 6, resize: 'vertical' }}
+            style={{ ...inputStyle, marginTop: 6, resize: 'none' }}
           />
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             <button onClick={save} style={btnStyle('#4caf50')}>Save</button>
-            <button onClick={() => setEditing(false)} style={btnStyle('#666')}>Cancel</button>
+            {location.name && (
+              <button onClick={() => setEditing(false)} style={btnStyle('#555')}>Cancel</button>
+            )}
           </div>
         </>
       ) : (
@@ -110,8 +111,10 @@ const inputStyle = {
   border: '1px solid #555',
   color: '#e0e0e0',
   borderRadius: 4,
-  padding: '6px 8px',
-  fontSize: 13,
+  padding: '8px',
+  // 16px minimum prevents iOS Safari from zooming in on focus
+  fontSize: 16,
+  boxSizing: 'border-box',
 };
 
 const btnStyle = (bg) => ({
@@ -119,16 +122,19 @@ const btnStyle = (bg) => ({
   color: '#fff',
   border: 'none',
   borderRadius: 4,
-  padding: '5px 12px',
+  // Tall enough for a comfortable touch target
+  padding: '10px 16px',
   cursor: 'pointer',
-  fontSize: 12,
+  fontSize: 14,
+  touchAction: 'manipulation',
 });
 
 const linkStyle = {
   color: '#7eb8f7',
-  fontSize: 12,
+  fontSize: 13,
   textDecoration: 'none',
   display: 'block',
+  padding: '2px 0',
 };
 
 const sectionLabel = {

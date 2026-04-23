@@ -45,10 +45,11 @@ export function OsmFeaturePopup({ feature, onAddLocation }) {
           color: '#fff',
           border: 'none',
           borderRadius: 4,
-          padding: '5px 12px',
+          padding: '10px 16px',
           cursor: 'pointer',
-          fontSize: 12,
+          fontSize: 14,
           width: '100%',
+          touchAction: 'manipulation',
         }}
       >
         + Save to My Locations
@@ -59,7 +60,8 @@ export function OsmFeaturePopup({ feature, onAddLocation }) {
 
 const linkStyle = {
   color: '#7eb8f7',
-  fontSize: 12,
+  fontSize: 13,
   textDecoration: 'none',
   display: 'block',
+  padding: '2px 0',
 };

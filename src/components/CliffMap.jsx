@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -34,6 +34,19 @@ function makeCircleIcon(color, size = 14) {
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -(size / 2 + 4)],
   });
+}
+
+// Stops tap/click events inside the popup from propagating to the Leaflet map,
+// which would otherwise trigger the map click handler and create a new pin.
+function PopupContent({ children }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      L.DomEvent.disableClickPropagation(ref.current);
+      L.DomEvent.disableScrollPropagation(ref.current);
+    }
+  }, []);
+  return <div ref={ref}>{children}</div>;
 }
 
 function MapClickHandler({ onMapClick }) {
@@ -127,8 +140,10 @@ export function CliffMap({
           position={[feature.lat, feature.lon]}
           icon={makeCircleIcon(OSM_COLORS[feature.type] || '#ff9800', 12)}
         >
-          <Popup>
-            <OsmFeaturePopup feature={feature} onAddLocation={onAddLocation} />
+          <Popup keepInView maxWidth={280}>
+            <PopupContent>
+              <OsmFeaturePopup feature={feature} onAddLocation={onAddLocation} />
+            </PopupContent>
           </Popup>
         </Marker>
       ))}
@@ -140,12 +155,14 @@ export function CliffMap({
           icon={makeCircleIcon(STATUS_COLORS[loc.status] || STATUS_COLORS.unexplored, 16)}
           ref={(ref) => { markerRefs.current[loc.id] = ref; }}
         >
-          <Popup>
-            <LocationPopup
-              location={loc}
-              onUpdate={onUpdateLocation}
-              onDelete={onDeleteLocation}
-            />
+          <Popup keepInView maxWidth={280}>
+            <PopupContent>
+              <LocationPopup
+                location={loc}
+                onUpdate={onUpdateLocation}
+                onDelete={onDeleteLocation}
+              />
+            </PopupContent>
           </Popup>
         </Marker>
       ))}
