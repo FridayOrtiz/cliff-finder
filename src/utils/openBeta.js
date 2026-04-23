@@ -22,7 +22,7 @@ export async function fetchOpenBetaAreas(lat, lng, radiusMeters = 40_000) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query,
-      variables: { lnglat: [lng, lat], maxDistance },
+      variables: { lnglat: { lat, lng }, maxDistance },
     }),
   });
 
