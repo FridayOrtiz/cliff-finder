@@ -1,25 +1,35 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { OSM_FILTER_DEFS } from '../utils/overpass';
 
-export function OsmFilterPopover({ filters, onChange, onClose }) {
+export function OsmFilterPopover({ filters, onChange, onClose, anchorRef }) {
   const ref = useRef(null);
+
+  // Position below the anchor button, aligned to its right edge
+  const rect = anchorRef?.current?.getBoundingClientRect();
+  const top = rect ? rect.bottom + 6 : 50;
+  const right = rect ? window.innerWidth - rect.right : 12;
 
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
+      const insidePopover = ref.current?.contains(e.target);
+      const insideAnchor = anchorRef?.current?.contains(e.target);
+      if (!insidePopover && !insideAnchor) onClose();
     };
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler);
+    // Delay so the tap that opened the popover doesn't immediately close it
+    const id = setTimeout(() => {
+      document.addEventListener('pointerdown', handler);
+    }, 50);
     return () => {
-      document.removeEventListener('mousedown', handler);
-      document.removeEventListener('touchstart', handler);
+      clearTimeout(id);
+      document.removeEventListener('pointerdown', handler);
     };
-  }, [onClose]);
+  }, [onClose, anchorRef]);
 
   const allOn = OSM_FILTER_DEFS.every((f) => filters[f.key]);
 
-  return (
-    <div ref={ref} style={popoverStyle}>
+  return createPortal(
+    <div ref={ref} style={{ ...popoverStyle, top, right }}>
       <div style={headerStyle}>
         <span style={{ fontWeight: 600, fontSize: 12 }}>OSM Data Layers</span>
         <button
@@ -48,19 +58,18 @@ export function OsmFilterPopover({ filters, onChange, onClose }) {
           </div>
         </label>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 }
 
 const popoverStyle = {
-  position: 'absolute',
-  top: 48,
-  right: 0,
+  position: 'fixed',
   background: '#1e1e1e',
   border: '1px solid #444',
   borderRadius: 8,
   boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
-  zIndex: 3000,
+  zIndex: 9999,
   width: 290,
   padding: 12,
 };
@@ -82,6 +91,7 @@ const toggleAllBtn = {
   padding: '2px 7px',
   fontSize: 10,
   cursor: 'pointer',
+  touchAction: 'manipulation',
 };
 
 const rowStyle = {

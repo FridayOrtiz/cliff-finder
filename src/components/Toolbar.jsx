@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Mountain, Loader, Layers, Menu, Activity, MapPin, SlidersHorizontal, HelpCircle } from 'lucide-react';
 import { OsmFilterPopover } from './OsmFilterPopover';
 
@@ -10,6 +10,7 @@ export function Toolbar({
   onHelp,
 }) {
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterBtnRef = useRef(null);
 
   return (
     <div style={toolbarStyle}>
@@ -38,6 +39,7 @@ export function Toolbar({
             style={{ borderRadius: '5px 0 0 5px' }}
           />
           <button
+            ref={filterBtnRef}
             onClick={() => setFilterOpen((o) => !o)}
             disabled={osmLoading}
             title="Choose which OSM feature types to fetch"
@@ -62,6 +64,7 @@ export function Toolbar({
               filters={osmFilters}
               onChange={onOsmFiltersChange}
               onClose={() => setFilterOpen(false)}
+              anchorRef={filterBtnRef}
             />
           )}
         </div>
