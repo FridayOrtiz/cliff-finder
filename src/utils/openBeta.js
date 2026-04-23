@@ -34,8 +34,8 @@ export async function fetchOpenBetaAreas(lat, lng, radiusMeters = 40_000) {
 
   if (json.errors?.length) throw new Error(json.errors[0]?.message || 'OpenBeta query error');
 
-  const crags = json.data?.cragsNear?.crags ?? [];
+  // cragsNear is an array of {crags: [...]} objects — flatten them all
+  const crags = (json.data?.cragsNear ?? []).flatMap((item) => item.crags ?? []);
 
-  // Return diagnostic info alongside results so the caller can surface it
   return { crags, raw: json.data };
 }
