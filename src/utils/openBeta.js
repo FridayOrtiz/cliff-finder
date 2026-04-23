@@ -4,25 +4,26 @@ const MAX_RADIUS_M = 100_000;
 export async function fetchOpenBetaAreas(lat, lng, radiusMeters = 40_000) {
   const maxDistance = Math.min(Math.round(radiusMeters), MAX_RADIUS_M);
 
-  // lnglat takes [longitude, latitude] — note the order
-  const query = `{
-    cragsNear(
-      lnglat: [${lng}, ${lat}]
-      maxDistance: ${maxDistance}
-      includeCrags: true
-    ) {
-      crags {
-        areaName
-        metadata { lat lng }
-        totalClimbs
+  // Point is a custom scalar — must be passed as a variable, not an inline literal
+  const query = `
+    query CragsNear($lnglat: Point, $maxDistance: Int) {
+      cragsNear(lnglat: $lnglat, maxDistance: $maxDistance, includeCrags: true) {
+        crags {
+          areaName
+          metadata { lat lng }
+          totalClimbs
+        }
       }
     }
-  }`;
+  `;
 
   const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({
+      query,
+      variables: { lnglat: [lng, lat], maxDistance },
+    }),
   });
 
   if (!res.ok) {
