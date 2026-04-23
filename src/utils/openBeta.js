@@ -1,22 +1,21 @@
 const ENDPOINT = 'https://api.openbeta.io/';
-
-// Cap radius — very large viewports aren't useful and may time out
 const MAX_RADIUS_M = 100_000;
 
 export async function fetchOpenBetaAreas(lat, lng, radiusMeters = 40_000) {
   const maxDistance = Math.min(Math.round(radiusMeters), MAX_RADIUS_M);
 
-  // Inline values to avoid variable type ambiguity across schema versions
+  // lnglat takes [longitude, latitude] — note the order
   const query = `{
     cragsNear(
-      lng: ${lng}
-      lat: ${lat}
+      lnglat: [${lng}, ${lat}]
       maxDistance: ${maxDistance}
       includeCrags: true
     ) {
-      areaName
-      metadata { lat lng }
-      totalClimbs
+      crags {
+        areaName
+        metadata { lat lng }
+        totalClimbs
+      }
     }
   }`;
 
@@ -34,7 +33,7 @@ export async function fetchOpenBetaAreas(lat, lng, radiusMeters = 40_000) {
   const json = await res.json();
   if (json.errors?.length) throw new Error(json.errors[0]?.message || 'OpenBeta query error');
 
-  return (json.data?.cragsNear ?? []).filter(
+  return (json.data?.cragsNear?.crags ?? []).filter(
     (a) => a.metadata?.lat && a.metadata?.lng && a.totalClimbs > 0
   );
 }
