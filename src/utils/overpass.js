@@ -1,6 +1,5 @@
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
-// Fetch natural rock features from OpenStreetMap within a bounding box
 export async function fetchClimbingFeatures(bounds) {
   const { south, west, north, east } = bounds;
   const bbox = `${south},${west},${north},${east}`;
@@ -42,22 +41,26 @@ export async function fetchClimbingFeatures(bounds) {
   })).filter((el) => el.lat && el.lon);
 }
 
-// Build a Zillow search URL for an area
+// Google Maps "land for sale" search — most reliable cross-platform option
+export function buildGoogleMapsUrl(lat, lng) {
+  return `https://www.google.com/maps/search/land+for+sale/@${lat},${lng},13z`;
+}
+
+// Zillow map search centered on coordinates
 export function buildZillowUrl(lat, lng) {
-  return `https://www.zillow.com/homes/for_sale/${lat},${lng}_ll/`;
+  return `https://www.zillow.com/homes/${lat},${lng}_ll/`;
 }
 
-// Build a Redfin search URL
-export function buildRedfinUrl(lat, lng) {
-  return `https://www.redfin.com/gis-search?lat=${lat}&lng=${lng}&zoom=13`;
-}
-
-// Build a LandWatch search URL (land/rural listings)
+// LandWatch rural/land listings — lon param (not lng)
 export function buildLandWatchUrl(lat, lng) {
-  return `https://www.landwatch.com/land/for-sale?lat=${lat}&lng=${lng}`;
+  return `https://www.landwatch.com/land/for-sale?lat=${lat}&lon=${lng}`;
 }
 
-// Build an OpenTopoMap link
+// Lands of America — large rural land marketplace
+export function buildLandsOfAmericaUrl(lat, lng) {
+  return `https://www.landsofamerica.com/land/search/?lat=${lat}&lon=${lng}`;
+}
+
 export function buildTopoUrl(lat, lng, zoom = 14) {
   return `https://opentopomap.org/#map=${zoom}/${lat}/${lng}`;
 }

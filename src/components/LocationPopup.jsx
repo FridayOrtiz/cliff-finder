@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buildZillowUrl, buildRedfinUrl, buildLandWatchUrl, buildTopoUrl } from '../utils/overpass';
+import { buildZillowUrl, buildGoogleMapsUrl, buildLandWatchUrl, buildLandsOfAmericaUrl, buildTopoUrl } from '../utils/overpass';
 
 const STATUS_OPTIONS = [
   { value: 'unexplored', label: 'Unexplored', color: '#888' },
@@ -7,7 +7,7 @@ const STATUS_OPTIONS = [
   { value: 'non-viable', label: 'Non-Viable', color: '#f44336' },
 ];
 
-export function LocationPopup({ location, onUpdate, onDelete, onClose }) {
+export function LocationPopup({ location, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(!location.name);
   const [name, setName] = useState(location.name || '');
   const [notes, setNotes] = useState(location.notes || '');
@@ -59,12 +59,7 @@ export function LocationPopup({ location, onUpdate, onDelete, onClose }) {
             {location.name || 'Unnamed Location'}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{
-              display: 'inline-block',
-              width: 8, height: 8,
-              borderRadius: '50%',
-              background: currentStatus?.color,
-            }} />
+            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: currentStatus?.color }} />
             <span style={{ fontSize: 12, color: currentStatus?.color }}>{currentStatus?.label}</span>
           </div>
           {location.notes && (
@@ -75,22 +70,25 @@ export function LocationPopup({ location, onUpdate, onDelete, onClose }) {
           </div>
 
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 4 }}>PROPERTY LISTINGS</div>
+            <div style={sectionLabel}>PROPERTY LISTINGS</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <a href={buildGoogleMapsUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                Google Maps — Land for Sale
+              </a>
               <a href={buildZillowUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
                 Zillow
               </a>
-              <a href={buildRedfinUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                Redfin
-              </a>
               <a href={buildLandWatchUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                LandWatch (Rural/Land)
+                LandWatch
+              </a>
+              <a href={buildLandsOfAmericaUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+                Lands of America
               </a>
             </div>
           </div>
 
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 4 }}>MAPS</div>
+            <div style={sectionLabel}>MAPS</div>
             <a href={buildTopoUrl(location.lat, location.lng)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
               OpenTopoMap
             </a>
@@ -131,4 +129,11 @@ const linkStyle = {
   fontSize: 12,
   textDecoration: 'none',
   display: 'block',
+};
+
+const sectionLabel = {
+  fontSize: 11,
+  fontWeight: 600,
+  color: '#888',
+  marginBottom: 4,
 };

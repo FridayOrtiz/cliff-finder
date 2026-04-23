@@ -1,4 +1,4 @@
-import { buildZillowUrl, buildRedfinUrl, buildLandWatchUrl } from '../utils/overpass';
+import { buildZillowUrl, buildGoogleMapsUrl, buildLandWatchUrl, buildLandsOfAmericaUrl } from '../utils/overpass';
 
 const TYPE_LABELS = {
   cliff: 'Cliff',
@@ -23,9 +23,18 @@ export function OsmFeaturePopup({ feature, onAddLocation }) {
       <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: '#888', marginBottom: 4 }}>PROPERTY LISTINGS</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <a href={buildZillowUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>Zillow</a>
-          <a href={buildRedfinUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>Redfin</a>
-          <a href={buildLandWatchUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>LandWatch</a>
+          <a href={buildGoogleMapsUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            Google Maps — Land for Sale
+          </a>
+          <a href={buildZillowUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            Zillow
+          </a>
+          <a href={buildLandWatchUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            LandWatch
+          </a>
+          <a href={buildLandsOfAmericaUrl(feature.lat, feature.lon)} target="_blank" rel="noopener noreferrer" style={linkStyle}>
+            Lands of America
+          </a>
         </div>
       </div>
 

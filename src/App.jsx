@@ -3,6 +3,7 @@ import { Toolbar } from './components/Toolbar';
 import { Sidebar } from './components/Sidebar';
 import { CliffMap } from './components/CliffMap';
 import { useLocations } from './hooks/useLocations';
+import { useIsMobile } from './hooks/useIsMobile';
 import { fetchClimbingFeatures } from './utils/overpass';
 
 export default function App() {
@@ -11,6 +12,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const mapRef = useRef(null);
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   const handleMapClick = useCallback((latlng) => {
     const loc = addLocation({ lat: latlng.lat, lng: latlng.lng });
@@ -52,13 +55,18 @@ export default function App() {
         onFetchFeatures={handleFetchFeatures}
         loading={loading}
         osmCount={osmFeatures.length}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen((o) => !o)}
       />
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
         <Sidebar
           locations={locations}
           onSelectLocation={handleSelectLocation}
           onDeleteLocation={deleteLocation}
           selectedId={flyTarget?.id}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isMobile={isMobile}
         />
         <div style={{ flex: 1, position: 'relative' }}>
           <CliffMap
