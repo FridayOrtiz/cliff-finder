@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { OsmFeaturePopup } from './OsmFeaturePopup';
 import { LocationPopup } from './LocationPopup';
+import { slopeColor, slopeLabel } from '../utils/terrain';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -36,8 +37,17 @@ function makeCircleIcon(color, size = 14) {
   });
 }
 
-// Stops tap/click events inside the popup from propagating to the Leaflet map,
-// which would otherwise trigger the map click handler and create a new pin.
+function makeOpenBetaIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:3px;background:#a855f7;border:2px solid rgba(255,255,255,0.7);box-shadow:0 1px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">C</div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -13],
+  });
+}
+
+// Stops tap events inside popups from propagating to the Leaflet map click handler.
 function PopupContent({ children }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -76,6 +86,8 @@ export function CliffMap({
   mapRef,
   locations,
   osmFeatures,
+  openBetaAreas,
+  slopeData,
   onMapClick,
   onAddLocation,
   onUpdateLocation,
@@ -104,6 +116,7 @@ export function CliffMap({
       <MapClickHandler onMapClick={onMapClick} />
 
       <LayersControl position="topright">
+        {/* Base layers */}
         <LayersControl.BaseLayer checked name="OpenTopoMap">
           <TileLayer
             url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
@@ -132,8 +145,75 @@ export function CliffMap({
             maxZoom={16}
           />
         </LayersControl.BaseLayer>
+
+        {/* Overlays */}
+        <LayersControl.Overlay name="Hillshade">
+          <TileLayer
+            url="https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade_Dark/MapServer/tile/{z}/{y}/{x}"
+            attribution='ESRI'
+            opacity={0.45}
+            maxZoom={19}
+          />
+        </LayersControl.Overlay>
       </LayersControl>
 
+      {/* Slope heatmap from terrain analysis */}
+      {slopeData.map((pt, i) => (
+        <CircleMarker
+          key={i}
+          center={[pt.lat, pt.lng]}
+          radius={18}
+          pathOptions={{
+            color: 'transparent',
+            fillColor: slopeColor(pt.slope),
+            fillOpacity: 0.55,
+          }}
+        >
+          <Popup keepInView maxWidth={220}>
+            <PopupContent>
+              <div style={{ fontSize: 13 }}>
+                <div style={{ fontWeight: 600, marginBottom: 4, color: slopeColor(pt.slope) }}>
+                  {pt.slope.toFixed(0)}° slope
+                </div>
+                <div style={{ fontSize: 11, color: '#bbb', marginBottom: 4 }}>{slopeLabel(pt.slope)}</div>
+                <div style={{ fontSize: 11, color: '#666' }}>{pt.elevation.toFixed(0)} m elevation</div>
+              </div>
+            </PopupContent>
+          </Popup>
+        </CircleMarker>
+      ))}
+
+      {/* OpenBeta known climbing areas */}
+      {openBetaAreas.map((area) => (
+        <Marker
+          key={area.uuid}
+          position={[area.metadata.lat, area.metadata.lng]}
+          icon={makeOpenBetaIcon()}
+        >
+          <Popup keepInView maxWidth={240}>
+            <PopupContent>
+              <div style={{ fontSize: 13 }}>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>{area.areaName}</div>
+                <div style={{ fontSize: 11, color: '#a855f7', marginBottom: 6 }}>
+                  {area.totalClimbs} climb{area.totalClimbs !== 1 ? 's' : ''} · OpenBeta
+                </div>
+                <button
+                  onClick={() => onAddLocation({
+                    lat: area.metadata.lat,
+                    lng: area.metadata.lng,
+                    name: area.areaName,
+                  })}
+                  style={saveBtnStyle}
+                >
+                  + Save to My Locations
+                </button>
+              </div>
+            </PopupContent>
+          </Popup>
+        </Marker>
+      ))}
+
+      {/* OSM natural features */}
       {osmFeatures.map((feature) => (
         <Marker
           key={feature.osmId}
@@ -148,6 +228,7 @@ export function CliffMap({
         </Marker>
       ))}
 
+      {/* User-saved locations */}
       {locations.map((loc) => (
         <Marker
           key={loc.id}
@@ -169,3 +250,15 @@ export function CliffMap({
     </MapContainer>
   );
 }
+
+const saveBtnStyle = {
+  background: '#7c3aed',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 4,
+  padding: '8px 12px',
+  cursor: 'pointer',
+  fontSize: 13,
+  width: '100%',
+  touchAction: 'manipulation',
+};

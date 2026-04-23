@@ -5,15 +5,28 @@ import { CliffMap } from './components/CliffMap';
 import { useLocations } from './hooks/useLocations';
 import { useIsMobile } from './hooks/useIsMobile';
 import { fetchClimbingFeatures } from './utils/overpass';
+import { fetchSlopeGrid } from './utils/terrain';
+import { fetchOpenBetaAreas } from './utils/openBeta';
 
 export default function App() {
   const { locations, addLocation, updateLocation, deleteLocation } = useLocations();
   const [osmFeatures, setOsmFeatures] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [slopeData, setSlopeData] = useState([]);
+  const [openBetaAreas, setOpenBetaAreas] = useState([]);
+  const [osmLoading, setOsmLoading] = useState(false);
+  const [terrainLoading, setTerrainLoading] = useState(false);
+  const [climbsLoading, setClimbsLoading] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const mapRef = useRef(null);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  const getBounds = () => {
+    const map = mapRef.current;
+    if (!map) return null;
+    const b = map.getBounds();
+    return { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
+  };
 
   const handleMapClick = useCallback((latlng) => {
     const loc = addLocation({ lat: latlng.lat, lng: latlng.lng });
@@ -25,23 +38,53 @@ export default function App() {
     setFlyTarget({ ...loc, _t: Date.now() });
   }, [addLocation]);
 
-  const handleFetchFeatures = useCallback(async () => {
-    const map = mapRef.current;
-    if (!map) return;
-    const b = map.getBounds();
-    setLoading(true);
+  const handleFetchOsm = useCallback(async () => {
+    const bounds = getBounds();
+    if (!bounds) return;
+    setOsmLoading(true);
     try {
-      const features = await fetchClimbingFeatures({
-        south: b.getSouth(),
-        west: b.getWest(),
-        north: b.getNorth(),
-        east: b.getEast(),
-      });
-      setOsmFeatures(features);
+      setOsmFeatures(await fetchClimbingFeatures(bounds));
     } catch (err) {
-      alert(`Failed to fetch OSM features: ${err.message}`);
+      alert(`OSM fetch failed: ${err.message}`);
     } finally {
-      setLoading(false);
+      setOsmLoading(false);
+    }
+  }, []);
+
+  const handleAnalyzeTerrain = useCallback(async () => {
+    const bounds = getBounds();
+    if (!bounds) return;
+    const spanDeg = bounds.north - bounds.south;
+    if (spanDeg > 3) {
+      alert('Zoom in more before running slope analysis — it works best at zoom 9 or closer.');
+      return;
+    }
+    setTerrainLoading(true);
+    try {
+      setSlopeData(await fetchSlopeGrid(bounds));
+    } catch (err) {
+      alert(`Terrain analysis failed: ${err.message}`);
+    } finally {
+      setTerrainLoading(false);
+    }
+  }, []);
+
+  const handleFetchClimbs = useCallback(async () => {
+    const bounds = getBounds();
+    if (!bounds) return;
+    const centerLat = (bounds.south + bounds.north) / 2;
+    const centerLng = (bounds.west + bounds.east) / 2;
+    // Radius = half the diagonal of the bounding box in metres (rough)
+    const latM = ((bounds.north - bounds.south) / 2) * 111320;
+    const lngM = ((bounds.east - bounds.west) / 2) * 111320 * Math.cos(centerLat * Math.PI / 180);
+    const radius = Math.round(Math.sqrt(latM ** 2 + lngM ** 2));
+    setClimbsLoading(true);
+    try {
+      setOpenBetaAreas(await fetchOpenBetaAreas(centerLat, centerLng, radius));
+    } catch (err) {
+      alert(`OpenBeta fetch failed: ${err.message}`);
+    } finally {
+      setClimbsLoading(false);
     }
   }, []);
 
@@ -52,9 +95,15 @@ export default function App() {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Toolbar
-        onFetchFeatures={handleFetchFeatures}
-        loading={loading}
+        onFetchOsm={handleFetchOsm}
+        osmLoading={osmLoading}
         osmCount={osmFeatures.length}
+        onAnalyzeTerrain={handleAnalyzeTerrain}
+        terrainLoading={terrainLoading}
+        slopeCount={slopeData.length}
+        onFetchClimbs={handleFetchClimbs}
+        climbsLoading={climbsLoading}
+        climbsCount={openBetaAreas.length}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((o) => !o)}
       />
@@ -73,6 +122,8 @@ export default function App() {
             mapRef={mapRef}
             locations={locations}
             osmFeatures={osmFeatures}
+            openBetaAreas={openBetaAreas}
+            slopeData={slopeData}
             onMapClick={handleMapClick}
             onAddLocation={handleAddLocation}
             onUpdateLocation={updateLocation}
