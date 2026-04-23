@@ -16,14 +16,11 @@ export async function fetchSlopeGrid(bounds) {
     }
   }
 
-  // opentopodata expects pipe-delimited "lat,lng|lat,lng" string
+  // GET with pipe-delimited query string avoids CORS preflight on iOS Safari
   const locStr = points.map((p) => `${p.lat},${p.lng}`).join('|');
+  const url = `https://api.opentopodata.org/v1/srtm30m?locations=${encodeURIComponent(locStr)}`;
 
-  const res = await fetch('https://api.opentopodata.org/v1/srtm30m', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ locations: locStr }),
-  });
+  const res = await fetch(url);
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
